@@ -1,0 +1,48 @@
+//sensor
+context OxySensor 
+inv: self.sensorID <> null
+
+context PhSensor 
+inv: self.sensorID <> null
+
+context TemparatureSensor
+inv: self.sensorID <> null
+
+context OxySensor::getData():Float
+post: result >= 10 and result <= 50
+
+context PhSensor::getData():Float 
+post: result >= 0 and result <= 14
+
+context TemperatureSensor::getData():Float 
+post: result >= 0 and result <= 100
+
+context OxySensor::getLocation():Location 
+inv: self.location <> null
+
+context PhSensor::getLocation():Location 
+inv: self.location <> null
+
+context TemperatureSensor::getLocation():Location 
+inv: self.location <> null
+
+context Sensor inv:
+	location->size() <= 1
+
+//Buffer
+
+context Buffer::listLogEntry: ArrayList<LogEntry> 
+init: new ArrayList<LogEntry>()
+
+context Buffer inv LogEntry: 
+	self.listLogEntry=Bag(LogEntry)
+
+context Buffer::remove(sensorId: String, timestamp: TimeStamp)
+pre: self.listLogEntry->includes(Tuple(sensorId, timestamp))	
+post: self.listLogEntry->exclude(Tuple(sensorId, timestamp))
+//LogWriter
+
+context LogWriter::writeEntryToBuffer(Sensor sensor, Buffer buffer)
+post: buffer.listLogEntry->union(Bag(Tuple(, sensor->getData(), sensor->getID())))
+
+context Export
